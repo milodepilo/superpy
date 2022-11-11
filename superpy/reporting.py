@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 import os
 import sys
+from tabulate import tabulate
 
 # setting some variables to see if files are already present.
 bought_exists = os.path.exists('bought.csv')
@@ -20,28 +21,14 @@ out = sys.stdout
 
 
 def get_revenue(args):
-    """ Function that returns the revenue for any given day or date range.
-
-    this function uses the panda dataframes to report back the revenue for any
-    given date or date range.It iterates over al rows in the sold.csv file, 
-    checks if the date is in the args.date and adds the selling price to the revenue variable.
-    once completed it returns a format string  with the revenue
-    based on the args.date
-
-    variables:
-
-    args.date -- date specified by the user on the cli
-    args.type -- the type of date specified: [month, year, date, today]
-    revenue -- variable used to keep track of the revenue
-
-    """
 
     revenue = 0
 
     try:
         # if no date and no type was specified, return profit so far.
         if args.date == None and args.type == None:
-            for index, row in sold.iterrows(): # sold.itterows is an iterable variable of all rows in the pandas dataframe.
+            # sold.itterows is an iterable variable of all rows in the pandas dataframe.
+            for index, row in sold.iterrows():
                 revenue += row["sell_price"]
             return out.write(f"total revenue so far is: {revenue}")
 
@@ -80,26 +67,13 @@ def get_revenue(args):
             return out.write(f"todays revenue so far is: {revenue}")
         else:
             return out.write(f"total revenue so far is: {revenue}")
-    
+
     # if sold.csv is not found, return an error message.
     except NameError:
         return out.write("sold.csv is not found, check if if this is correct, e.g. no sales took place yet.")
 
 
 def get_profit(args):
-    """ Function that returns the profit for a given date/daterange
-    
-    This function is almost the same as the revenue function, it makes use of the pandas dataframes at the top of the file.
-    The only difference is that it subtracts the buy price from the sell price, before adding the solution of that to a profit variable.
-
-    variables:
-
-    args.date -- date specified by the user on the cli
-    args.type -- the type of date specified: [month, year, date, today]
-    profit -- variable used to keep track of the profit
-    
-    
-    """
 
     profit = 0
 
@@ -144,3 +118,68 @@ def get_profit(args):
 
     except NameError:
         return out.write("sold.csv is not found, check if if this is correct, e.g. no sales took place yet.")
+
+
+def export(args=[]):
+    filename = f"superpy{date_keeping.return_date()}"
+     
+    try:
+        with pd.ExcelWriter(f"export/{filename}.xlsx", mode="a") as writer:
+            try:
+                boughtDF = pd.read_csv("bought.csv")
+                boughtDF.to_excel(writer, sheet_name="Bought")
+            except FileNotFoundError:
+                print("no bought.csv found")
+
+            try:
+                soldDF = pd.read_csv("sold.csv")
+                soldDF.to_excel(writer, sheet_name="Sold")
+            except FileNotFoundError:
+                print("no sold.csv file found")
+
+            try:
+                inventoryDF = pd.read_csv("inventory.csv")
+                inventoryDF.to_excel(writer, sheet_name="Inventory")
+            except FileNotFoundError:
+                print("no inventory.csv file found")
+
+            try:
+                expiredDF = pd.read_csv("expired.csv")
+                expiredDF.to_excel(writer, sheet_name="Expired")
+            except FileNotFoundError:
+                print("no expired.csv file found")
+
+    except FileNotFoundError:
+        try:
+            with pd.ExcelWriter(f"export/{filename}.xlsx") as writer:
+                try:
+                    boughtDF = pd.read_csv("bought.csv")
+                    boughtDF.to_excel(writer, sheet_name="Bought")
+                except FileNotFoundError:
+                    print("no bought.csv found")
+
+                try:
+                    soldDF = pd.read_csv("sold.csv")
+                    soldDF.to_excel(writer, sheet_name="Sold")
+                except FileNotFoundError:
+                    print("no sold.csv file found")
+
+                try:
+                    inventoryDF = pd.read_csv("inventory.csv")
+                    inventoryDF.to_excel(writer, sheet_name="Inventory")
+                except FileNotFoundError:
+                    print("no inventory.csv file found")
+
+                try:
+                    expiredDF = pd.read_csv("expired.csv")
+                    expiredDF.to_excel(writer, sheet_name="Expired")
+                except FileNotFoundError:
+                    print("no expired.csv file found")
+        except IndexError:
+            print("no csv files found, no sheets created.")
+            pass
+
+    except IndexError:
+        print("no csv files found, no sheets created.")
+        pass
+    os.system("start " + f"export/{filename}.xlsx")

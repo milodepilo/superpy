@@ -14,21 +14,7 @@ out = sys.stdout
 
 
 def item_bought(args):
-    ''' function that passes data to functions that write to csv.
-
-    The item_bought function uses the data from argparse passed
-    into the function and encriches some data using functions
-    from different modules.
-    It then passes the enriched data along with the given header names
-    to functions that write the data to different csv files
-    the description of the used functions can be found in their modules.
-
-    Arguments:
-    args.item_name -- name of the bought item, comming from argparse
-    args.price -- price for which the item has been bought, coming from argparse
-    args.expiration_date -- date of expiration, coming from argparse
    
-    '''
 
     # Names used as header in bought.csv
     header_names = [
@@ -52,20 +38,7 @@ def item_bought(args):
 
 
 def item_sold(args):
-    ''' function that passes data to functions that write to csv.
-
-    The item_sold function uses the data from argparse passed
-    into the function and encriches some data using functions
-    from different modules.
-    It check if the item is in stock and if so it then passes
-    the enriched data along with the given header names
-    to the functions that write and remove data to and from different csv files
-    the description of the used functions can be found in their modules.
-
-    Arguments:
-    item_name -- name of the sold item
-    sell_price -- price for which the item has been sold.
-    '''
+    
     # Names used as header in sold.csv
     header_names = [
         "id", "item_name", "expiration_date", "buy_date", "buy_price",

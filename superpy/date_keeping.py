@@ -1,10 +1,12 @@
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
+from email import header
 import os
 import sys
 import csv
 import pandas as pd
+from tabulate import tabulate
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,7 +24,7 @@ def create_datetime_file():
 
 # function that set the date stored in a datetime.txt to today's date.
 def set_date_to_today(args=[]):
-    with open('datetime.txt', 'r') as dateFileOld:
+    with open('datetime.txt', 'a') as dateFileOld:
         old_date = dateFileOld.readlines
         if old_date != today:
             with open('datetime.txt', 'w') as datefile:
@@ -41,6 +43,9 @@ def return_date():
     else:
         with open('datetime.txt', 'r') as datefile:
             return datefile.readline()
+
+def print_date(args=[]):
+    print(return_date())
 
 
 # return the date of the day before the date stored in datetime.txt
@@ -87,19 +92,7 @@ def validate_date(date):
 
 # Function that checks the invetory for expired items.
 def check_for_expired_items(args=[], message=""):
-
-    """Function that checks the inventory for expired items
-    
-    this function can be called on its own to check for expired items,
-    but is also called by other functions as an automatic check.
-    When called by other function, the message variable is provided by
-    the calling function. It uses pandas for quick checking to
-    see if the file has more than only the header inside of it.
-    the rest of the csv actions are performed using pythons csv module.
-
-    arguments:
-    message -- 
-    """
+    today = return_date()
 
     file_exists = os.path.exists("inventory.csv")
     # this part prints out the message given to it when called by other functions.
@@ -126,7 +119,7 @@ def check_for_expired_items(args=[], message=""):
             with open("inventory.csv", "r") as inv:
                 dict_reader = csv.DictReader(inv)
                 for row in dict_reader:
-                    if row["expiration_date"] < today:
+                    if datetime.strptime(row["expiration_date"],'%Y-%m-%d') < datetime.strptime(today, '%Y-%m-%d'):
                         row["expired"] = "True"
                         expired.append(row) # append to list if expired
                     else:
@@ -139,14 +132,14 @@ def check_for_expired_items(args=[], message=""):
                 dict_writer = csv.DictWriter(new_inv, fieldnames=header_names)
                 dict_writer.writeheader()
                 # write each dict in list to csv
-                for dict in all_items_with_expired_flag:
+                for dict in not_expired:
                     dict_writer.writerow(dict)
 
             # opening expired.csv for writing/appending the dicts in the expired list
             with open("expired.csv", "a+", newline="") as expired_csv:
                 dict_writer = csv.DictWriter(
                     expired_csv, fieldnames=header_names)
-                if os.path.exists("expired.csv") is not True:
+                if os.stat("expired.csv").st_size ==0:
                     dict_writer.writeheader()
                     for dict in expired:
                         dict_writer.writrow(dict)
@@ -157,4 +150,5 @@ def check_for_expired_items(args=[], message=""):
         # print message based on the result of the expired check.
         if len(expired) == 0:
             return out.write("nothing expired")
-        return out.write(f"the follwing expired:\n{expired}")
+        print(f"the follwing expired:\n{tabulate(expired, headers='keys')}")
+        return expired
